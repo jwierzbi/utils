@@ -41,7 +41,7 @@ else
         echo "archiving directory: ${ENTRY}"
         tar -cf - -C $(dirname ${ENTRY}) $(basename ${ENTRY}) -P | \
             pv -s $(du -sb ${ENTRY} | awk '{print $1}') | \
-            xz -9 -z > $(basename ${ENTRY}).tar.xz
+            xz -9zc > $(basename ${ENTRY}).tar.xz
     elif [ -f "${ENTRY}" ]; then
         echo "compressing file ${ENTRY}"
         cat ${ENTRY} | pv -s $(du -sb ${ENTRY} | awk '{print $1}') | \
