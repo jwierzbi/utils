@@ -1,13 +1,21 @@
-"""Alows to apply styles to a string.
+"""Style strings with ANSI escape sequences.
 
-The styles are applied in form of ANSI escape sequences.
+To apply styles imply use:
+
+    Style.style(string, bold=True, color=Style.Color.RED)
 """
 
 import re
 from enum import Enum
 
 class Style:
+    """Style string with ANSI escape sequences.
+
+    The styles are applied at the beginning of the string and reverted
+    at the end of it. It's possible to nest style. The outer styles will
+    be then reapplied when inner style ends."""
     class Color(Enum):
+        """Color definitions."""
         BLACK = '30'
         RED = '31'
         GREEN = '32'
@@ -28,6 +36,18 @@ class Style:
     @staticmethod
     def style(string, bold=False, italic=False, underline=False,
               color: Color=None) -> str:
+        """Apply style to the string.
+
+        Args:
+            bold:      if True the text will be printed as bold
+            italic:    if True the text will be printed as italic
+            underline: if True the text will be underlined
+            color:     if specified the text will be colored
+
+        Returns:
+            String with applied styles of original string if no styles
+            were specified.
+        """
         start_seq = []
         end_seq = []
 
