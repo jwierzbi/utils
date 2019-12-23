@@ -27,7 +27,7 @@ class StyleTest(unittest.TestCase):
         self.assertEqual('\x1b[4mLorem ipsum...\x1b[24m', text)
     
     def test__simple_color_style(self):
-        text = Style.style('Lorem ipsum...', color=Style.Color.RED)
+        text = Style.style('Lorem ipsum...', fg=Style.Color.RED)
         self.assertEqual('\x1b[31mLorem ipsum...\x1b[39m', text)
 
     def test__simple_bold_and_italic_style(self):
@@ -36,17 +36,17 @@ class StyleTest(unittest.TestCase):
 
     def test__simple_underline_and_color_style(self):
         text = Style.style('Lorem ipsum...', underline=True,
-                           color=Style.Color.GREEN)
+                           fg=Style.Color.GREEN)
         self.assertEqual('\x1b[4;32mLorem ipsum...\x1b[24;39m', text)
 
     def test__double_nested_style(self):
         text = Style.style(
-            Style.style('Lorem', color=Style.Color.LIGHT_RED) +
+            Style.style('Lorem', fg=Style.Color.LIGHT_RED) +
             ' ipsum ' +
             Style.style('dolor', bold=True, underline=True) +
             ' sit amet, consectetur adipiscing ' +
             Style.style('elit.', underline=True, bold=True),
-            italic=True, bold=True, color=Style.Color.YELLOW
+            italic=True, bold=True, fg=Style.Color.YELLOW
         )
         self.assertEqual(
             '\x1b[1;3;33m\x1b[91mLorem\x1b[39m\x1b[1;3;33m ipsum '
@@ -61,9 +61,9 @@ class StyleTest(unittest.TestCase):
                 'Lorem ipsum ' +
                 Style.style('dolor', bold=True, underline=True) +
                 ' sit amet,',
-                color=Style.Color.LIGHT_RED) +
+                fg=Style.Color.LIGHT_RED) +
             ' consectetur adipiscing elit.',
-            italic=True, bold=True, color=Style.Color.YELLOW
+            italic=True, bold=True, fg=Style.Color.YELLOW
         )
         self.assertEqual(
             '\x1b[1;3;33m\x1b[91mLorem ipsum \x1b[1;4mdolor\x1b[22;24m'
@@ -79,10 +79,10 @@ class StyleTest(unittest.TestCase):
                 Style.style(
                     'dolor' + Style.style(
                         ' consectetur ',
-                    color=Style.Color.MAGENTA) + 'adipiscing',
-                underline=True, color=Style.Color.GREEN) + ' elit',
-            italic=True, color=Style.Color.YELLOW) + '. The ',
-        bold=True, color=Style.Color.RED) + 'end.'
+                    fg=Style.Color.MAGENTA) + 'adipiscing',
+                underline=True, fg=Style.Color.GREEN) + ' elit',
+            italic=True, fg=Style.Color.YELLOW) + '. The ',
+        bold=True, fg=Style.Color.RED) + 'end.'
 
         self.assertEqual(
             '\x1b[1;31m\x1b[3;33mLorem ipsum \x1b[4;32mdolor'

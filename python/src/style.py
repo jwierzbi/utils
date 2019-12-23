@@ -2,7 +2,29 @@
 
 To apply styles imply use:
 
-    Style.style(string, bold=True, color=Style.Color.RED)
+    Style.style(string, bold=True, fg=Style.Color.RED)
+"""
+
+"""
+Copyright (c) 2019 Jarosław Wierzbicki
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 """
 
 import re
@@ -16,33 +38,40 @@ class Style:
     be then reapplied when inner style ends."""
     class Color(Enum):
         """Color definitions."""
-        BLACK = '30'
-        RED = '31'
-        GREEN = '32'
-        YELLOW = '33'
-        BLUE = '34'
-        MAGENTA = '35'
-        CYAN = '36'
-        LIGHT_GRAY = '37'
-        DARK_GRAY = '90'
-        LIGHT_RED = '91'
-        LIGHT_GREEN = '92'
-        LIGHT_YELLOW = '93'
-        LIGHT_BLUE = '94'
-        LIGHT_MAGENTA = '95'
-        LIGHT_CYAN = '96'
-        WHITE = '97'
+
+        def __new__(cls, fg, bg):
+            obj = object.__new__(cls)
+            obj._value_ = {'fg': fg, 'bg': bg}
+            return obj
+
+        BLACK = ('30', '40')
+        RED = ('31', '41')
+        GREEN = ('32', '42')
+        YELLOW = ('33', '43')
+        BLUE = ('34', '44')
+        MAGENTA = ('35', '45')
+        CYAN = ('36', '46')
+        LIGHT_GRAY = ('37', '47')
+        DARK_GRAY = ('90', '100')
+        LIGHT_RED = ('91', '101')
+        LIGHT_GREEN = ('92', '102')
+        LIGHT_YELLOW = ('93', '103')
+        LIGHT_BLUE = ('94', '104')
+        LIGHT_MAGENTA = ('95', '105')
+        LIGHT_CYAN = ('96', '106')
+        WHITE = ('97', '107')
 
     @staticmethod
     def style(string, bold=False, italic=False, underline=False,
-              color: Color=None) -> str:
+              fg: Color=None, bg: Color=None) -> str:
         """Apply style to the string.
 
         Args:
             bold:      if True the text will be printed as bold
             italic:    if True the text will be printed as italic
             underline: if True the text will be underlined
-            color:     if specified the text will be colored
+            fg:        if specified the text will be colored
+            bg:        if specified the background of the text will be colored
 
         Returns:
             String with applied styles of original string if no styles
@@ -61,9 +90,12 @@ class Style:
         if underline:
             start_seq.append('4')
             end_seq.append('24')
-        if color:
-            start_seq.append(color.value)
+        if fg:
+            start_seq.append(fg.value['fg'])
             end_seq.append('39')
+        if bg:
+            start_seq.append(bg.value['bg'])
+            end_seq.append('49')
 
         # create the ANSI escape sequences
         start_seq = '\x1b[{}m'.format(';'.join(start_seq)) if start_seq else ''
@@ -78,7 +110,11 @@ class Style:
             # added the found sequence
             out += string[offset:match.start()]
             # determine if the nested sequence is a start or end sequence
-            start_cmds = ('1', '3', '4', *(x.value for x in Style.Color))
+            start_cmds = (
+                '1', '3', '4',
+                *(x.value['fg'] for x in Style.Color),
+                *(x.value['bg'] for x in Style.Color),
+            )
             if match.group(1).split(';')[0] in start_cmds:
                 # this is a start sequence so just add it
                 out += string[match.start():match.end()]
