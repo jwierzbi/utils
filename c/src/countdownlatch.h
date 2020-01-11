@@ -22,7 +22,14 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
+#ifndef __COUNTDOWNLATCH_H__
+#define __COUNTDOWNLATCH_H__
+
 #include <pthread.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif // __cplusplus
 
 typedef struct countdownlatch {
     unsigned int count;
@@ -31,7 +38,7 @@ typedef struct countdownlatch {
 } countdownlatch_t;
 
 /** Static initializer for the countdown latch.
- * 
+ *
  * @param[in] count the number of times countdownlatch_countdown() has to be
  *            invoked before thread calling countdownlatch_await() unblocks
  */
@@ -85,3 +92,9 @@ int countdownlatch_countdown(countdownlatch_t *cdl);
  * @return 0 upon success and error code otherwise
  */
 unsigned int countdownlatch_getcount(countdownlatch_t *cdl);
+
+#ifdef __cplusplus
+}
+#endif // __cplusplus
+
+#endif // __COUNTDOWNLATCH_H__
