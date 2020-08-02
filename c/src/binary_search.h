@@ -35,8 +35,16 @@
 extern "C" {
 #endif // __cplusplus
 
+typedef ssize_t (*compare_fn_t)(const void *, const void *);
+
 ssize_t binary_search(void *array, size_t asize, size_t esize,
-                      ssize_t compare(void *, void *), void *search);
+                      compare_fn_t compare, void *search);
+
+ssize_t binary_search_leftmost(void *array, size_t asize, size_t esize,
+                               compare_fn_t compare, void *search);
+
+ssize_t binary_search_rightmost(void *array, size_t asize, size_t esize,
+                                compare_fn_t compare, void *search);
 
 #ifdef __cplusplus
 }

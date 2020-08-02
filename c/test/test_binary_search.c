@@ -36,7 +36,10 @@
 #include <cmocka.h>
 #include <binary_search.h>
 
-static ssize_t compare_int(void *x1, void *x2)
+#include <stdlib.h>
+#include <time.h>
+
+static ssize_t compare_int(const void *x1, const void *x2)
 {
     // printf("compare: %d (%p), %d (%p)\n", *(int *) x1, x1, *(int *) x2, x2);
     return *(int *) x1 - *(int *) x2;
@@ -163,7 +166,7 @@ struct test {
     int64_t key;
 };
 
-static ssize_t compare_struct(void *x1, void *x2)
+static ssize_t compare_struct(const void *x1, const void *x2)
 {
     // printf("compare: %" PRId64 " (%p), %" PRId64 " (%p)\n",
     //        ((struct test *) x1)->key, x1, ((struct test *) x2)->key, x2);
@@ -200,6 +203,236 @@ static void search_struct_rightmost_returns_success(void **state)
     assert_int_equal(7, ret);
 }
 
+static void bsl_null_array_returns_error(void **state)
+{
+    (void) state;
+    int search = 1;
+    int ret = binary_search_leftmost(NULL, 1, 1, compare_int, &search);
+    assert_int_equal(-1, ret);
+}
+
+static void bsl_zero_array_size_returns_error(void **state)
+{
+    (void) state;
+    int a[] = {1, 2, 3};
+    int ret = binary_search_leftmost(a, 0, sizeof(a[0]), compare_int, &a[1]);
+    assert_int_equal(-1, ret);
+}
+
+static void bsl_array_size_too_large_returns_error(void **state)
+{
+    (void) state;
+    int a[] = {1};
+    int ret = binary_search_leftmost(a, (size_t) SSIZE_MAX + 1, sizeof(a[0]),
+                                     compare_int, &a[0]);
+    assert_int_equal(-1, ret);
+}
+
+static void bsl_zero_element_size_returns_error(void **state)
+{
+    (void) state;
+    int a[] = {1, 2, 3};
+    int ret = binary_search_leftmost(a, sizeof(a) / sizeof(a[0]), 0,
+                                     compare_int, &a[1]);
+    assert_int_equal(-1, ret);
+}
+
+static void bsl_no_compare_function_returns_error(void **state)
+{
+    (void) state;
+    int a[] = {1, 2, 3};
+    int ret = binary_search_leftmost(a, sizeof(a) / sizeof(a[0]), sizeof(a[0]),
+                                     NULL, &a[1]);
+    assert_int_equal(-1, ret);
+}
+
+static void bsl_one_int_element_array_returns_success(void **state)
+{
+    (void) state;
+    int a[] = {1};
+    int ret = binary_search_leftmost(a, sizeof(a) / sizeof(a[0]), sizeof(a[0]),
+                                     compare_int, &a[0]);
+    assert_int_equal(0, ret);
+}
+
+static void bsl_search_int_middle_returns_success(void **state)
+{
+    (void) state;
+    int a[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
+    int ret = binary_search_leftmost(a, sizeof(a) / sizeof(a[0]), sizeof(a[0]),
+                                     compare_int, &a[7]);
+    assert_int_equal(7, ret);
+}
+
+static void bsl_search_int_leftmost_returns_success(void **state)
+{
+    (void) state;
+    int a[] = {1, 2, 3, 3, 3, 3, 3, 8, 9, 10, 11, 12, 13, 14, 15, 16};
+    int ret = binary_search_leftmost(a, sizeof(a) / sizeof(a[0]), sizeof(a[0]),
+                                     compare_int, &a[0]);
+    assert_int_equal(0, ret);
+}
+
+static void bsl_search_int_rightmost_returns_success(void **state)
+{
+    (void) state;
+    int a[] = {1, 2, 3, 3, 3, 3, 3, 8, 9, 10, 11, 12, 13, 14, 15, 16};
+    int ret = binary_search_leftmost(a, sizeof(a) / sizeof(a[0]), sizeof(a[0]),
+                                     compare_int, &a[15]);
+    assert_int_equal(15, ret);
+}
+
+static void bsl_search_int_repeating_first_returns_success(void **state)
+{
+    (void) state;
+    int a[] = {1, 1, 1, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
+    int ret = binary_search_leftmost(a, sizeof(a) / sizeof(a[0]), sizeof(a[0]),
+                                     compare_int, &a[2]);
+    assert_int_equal(0, ret);
+}
+
+static void bsl_search_int_repeating_last_returns_success(void **state)
+{
+    (void) state;
+    int a[] = {1, 2, 3, 3, 3, 3, 3, 8, 9, 10, 11, 12, 13, 14, 15, 15};
+    int ret = binary_search_leftmost(a, sizeof(a) / sizeof(a[0]), sizeof(a[0]),
+                                     compare_int, &a[15]);
+    assert_int_equal(14, ret);
+}
+
+static void bsl_search_int_repeating_middle_returns_success(void **state)
+{
+    (void) state;
+    int a[] = {1, 2, 3, 3, 3, 3, 3, 8, 8, 8, 11, 12, 13, 14, 15, 16};
+    int ret = binary_search_leftmost(a, sizeof(a) / sizeof(a[0]), sizeof(a[0]),
+                                     compare_int, &a[9]);
+    assert_int_equal(7, ret);
+}
+
+static void bsl_null_search_element_returns_error(void **state)
+{
+    (void) state;
+    int a[] = {1, 2, 3};
+    int ret = binary_search_leftmost(a, sizeof(a) / sizeof(a[0]), sizeof(a[0]),
+                                     compare_int, NULL);
+    assert_int_equal(-1, ret);
+}
+
+static void bsr_null_array_returns_error(void **state)
+{
+    (void) state;
+    int search = 1;
+    int ret = binary_search_rightmost(NULL, 1, 1, compare_int, &search);
+    assert_int_equal(-1, ret);
+}
+
+static void bsr_zero_array_size_returns_error(void **state)
+{
+    (void) state;
+    int a[] = {1, 2, 3};
+    int ret = binary_search_rightmost(a, 0, sizeof(a[0]), compare_int, &a[1]);
+    assert_int_equal(-1, ret);
+}
+
+static void bsr_array_size_too_large_returns_error(void **state)
+{
+    (void) state;
+    int a[] = {1};
+    int ret = binary_search_rightmost(a, (size_t) SSIZE_MAX + 1, sizeof(a[0]),
+                                      compare_int, &a[0]);
+    assert_int_equal(-1, ret);
+}
+
+static void bsr_zero_element_size_returns_error(void **state)
+{
+    (void) state;
+    int a[] = {1, 2, 3};
+    int ret = binary_search_rightmost(a, sizeof(a) / sizeof(a[0]), 0,
+                                      compare_int, &a[1]);
+    assert_int_equal(-1, ret);
+}
+
+static void bsr_no_compare_function_returns_error(void **state)
+{
+    (void) state;
+    int a[] = {1, 2, 3};
+    int ret = binary_search_rightmost(a, sizeof(a) / sizeof(a[0]), sizeof(a[0]),
+                                     NULL, &a[1]);
+    assert_int_equal(-1, ret);
+}
+
+static void bsr_null_search_element_returns_error(void **state)
+{
+    (void) state;
+    int a[] = {1, 2, 3};
+    int ret = binary_search_rightmost(a, sizeof(a) / sizeof(a[0]), sizeof(a[0]),
+                                      compare_int, NULL);
+    assert_int_equal(-1, ret);
+}
+
+static void bsr_one_int_element_array_returns_success(void **state)
+{
+    (void) state;
+    int a[] = {1};
+    int ret = binary_search_rightmost(a, sizeof(a) / sizeof(a[0]), sizeof(a[0]),
+                                      compare_int, &a[0]);
+    assert_int_equal(0, ret);
+}
+
+static void bsr_search_int_middle_returns_success(void **state)
+{
+    (void) state;
+    int a[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
+    int ret = binary_search_rightmost(a, sizeof(a) / sizeof(a[0]), sizeof(a[0]),
+                                      compare_int, &a[7]);
+    assert_int_equal(7, ret);
+}
+
+static void bsr_search_int_leftmost_returns_success(void **state)
+{
+    (void) state;
+    int a[] = {1, 2, 3, 3, 3, 3, 3, 8, 9, 10, 11, 12, 13, 14, 15, 16};
+    int ret = binary_search_rightmost(a, sizeof(a) / sizeof(a[0]), sizeof(a[0]),
+                                      compare_int, &a[0]);
+    assert_int_equal(0, ret);
+}
+
+static void bsr_search_int_rightmost_returns_success(void **state)
+{
+    (void) state;
+    int a[] = {1, 2, 3, 3, 3, 3, 3, 8, 9, 10, 11, 12, 13, 14, 15, 16};
+    int ret = binary_search_rightmost(a, sizeof(a) / sizeof(a[0]), sizeof(a[0]),
+                                      compare_int, &a[15]);
+    assert_int_equal(15, ret);
+}
+
+static void bsr_search_int_repeating_first_returns_success(void **state)
+{
+    (void) state;
+    int a[] = {1, 1, 1, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
+    int ret = binary_search_rightmost(a, sizeof(a) / sizeof(a[0]), sizeof(a[0]),
+                                      compare_int, &a[2]);
+    assert_int_equal(2, ret);
+}
+
+static void bsr_search_int_repeating_last_returns_success(void **state)
+{
+    (void) state;
+    int a[] = {1, 2, 3, 3, 3, 3, 3, 8, 9, 10, 11, 12, 13, 14, 15, 15};
+    int ret = binary_search_rightmost(a, sizeof(a) / sizeof(a[0]), sizeof(a[0]),
+                                      compare_int, &a[15]);
+    assert_int_equal(15, ret);
+}
+
+static void bsr_search_int_repeating_middle_returns_success(void **state)
+{
+    (void) state;
+    int a[] = {1, 2, 3, 3, 3, 3, 3, 8, 8, 8, 11, 12, 13, 14, 15, 16};
+    int ret = binary_search_rightmost(a, sizeof(a) / sizeof(a[0]), sizeof(a[0]),
+                                      compare_int, &a[9]);
+    assert_int_equal(9, ret);
+}
+
 int main(void)
 {
     const struct CMUnitTest tests[] = {
@@ -218,6 +451,34 @@ int main(void)
         cmocka_unit_test(search_struct_middle_returns_success),
         cmocka_unit_test(search_struct_leftmost_returns_success),
         cmocka_unit_test(search_struct_rightmost_returns_success),
+
+        cmocka_unit_test(bsl_null_array_returns_error),
+        cmocka_unit_test(bsl_zero_array_size_returns_error),
+        cmocka_unit_test(bsl_array_size_too_large_returns_error),
+        cmocka_unit_test(bsl_zero_element_size_returns_error),
+        cmocka_unit_test(bsl_no_compare_function_returns_error),
+        cmocka_unit_test(bsl_null_search_element_returns_error),
+        cmocka_unit_test(bsl_one_int_element_array_returns_success),
+        cmocka_unit_test(bsl_search_int_middle_returns_success),
+        cmocka_unit_test(bsl_search_int_leftmost_returns_success),
+        cmocka_unit_test(bsl_search_int_rightmost_returns_success),
+        cmocka_unit_test(bsl_search_int_repeating_first_returns_success),
+        cmocka_unit_test(bsl_search_int_repeating_last_returns_success),
+        cmocka_unit_test(bsl_search_int_repeating_middle_returns_success),
+
+        cmocka_unit_test(bsr_null_array_returns_error),
+        cmocka_unit_test(bsr_zero_array_size_returns_error),
+        cmocka_unit_test(bsr_array_size_too_large_returns_error),
+        cmocka_unit_test(bsr_zero_element_size_returns_error),
+        cmocka_unit_test(bsr_no_compare_function_returns_error),
+        cmocka_unit_test(bsr_null_search_element_returns_error),
+        cmocka_unit_test(bsr_one_int_element_array_returns_success),
+        cmocka_unit_test(bsr_search_int_middle_returns_success),
+        cmocka_unit_test(bsr_search_int_leftmost_returns_success),
+        cmocka_unit_test(bsr_search_int_rightmost_returns_success),
+        cmocka_unit_test(bsr_search_int_repeating_first_returns_success),
+        cmocka_unit_test(bsr_search_int_repeating_last_returns_success),
+        cmocka_unit_test(bsr_search_int_repeating_middle_returns_success),
     };
 
     return cmocka_run_group_tests(tests, NULL, NULL);
