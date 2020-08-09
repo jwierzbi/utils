@@ -31,19 +31,19 @@
 
 #include <stdio.h>
 
-ssize_t binary_search(void *array, size_t asize, size_t esize,
+ssize_t binary_search(void *array, size_t ar_size, size_t el_size,
                       compare_fn_t compare, void *search)
 {
     if (array == NULL || compare == NULL || search == NULL)
         return -1;
-    if (array != NULL && (asize == 0 || asize > SSIZE_MAX || esize == 0))
+    if (array != NULL && (ar_size == 0 || ar_size > SSIZE_MAX || el_size == 0))
         return -1;
 
-    size_t left = 0, right = asize - 1;
+    size_t left = 0, right = ar_size - 1;
 
     while (left <= right) {
         size_t mid = left + (right - left) / 2;
-        ssize_t cmp = compare(search, array + (mid * esize));
+        ssize_t cmp = compare(search, (char *) array + (mid * el_size));
 
         if (cmp > 0)
             left = mid + 1;
@@ -56,19 +56,19 @@ ssize_t binary_search(void *array, size_t asize, size_t esize,
     return -1;
 }
 
-ssize_t binary_search_leftmost(void *array, size_t asize, size_t esize,
+ssize_t binary_search_leftmost(void *array, size_t ar_size, size_t el_size,
                                compare_fn_t compare, void *search)
 {
     if (array == NULL || compare == NULL || search == NULL)
         return -1;
-    if (array != NULL && (asize == 0 || asize > SSIZE_MAX || esize == 0))
+    if (array != NULL && (ar_size == 0 || ar_size > SSIZE_MAX || el_size == 0))
         return -1;
 
-    size_t left = 0, right = asize;
+    size_t left = 0, right = ar_size;
 
     while (left < right) {
         size_t mid = left + (right - left) / 2;
-        ssize_t cmp = compare(search, array + (mid * esize));
+        ssize_t cmp = compare(search, (char *) array + (mid * el_size));
 
         if (cmp > 0)
             left = mid + 1;
@@ -76,24 +76,25 @@ ssize_t binary_search_leftmost(void *array, size_t asize, size_t esize,
             right = mid;
     }
 
-    if (left < asize && compare(search, array + (left * esize)) == 0)
+    void *leftmost = (char *) array + (left * el_size);
+    if (left < ar_size && compare(search, leftmost) == 0)
         return left;
     return -1;
 }
 
-ssize_t binary_search_rightmost(void *array, size_t asize, size_t esize,
+ssize_t binary_search_rightmost(void *array, size_t ar_size, size_t el_size,
                                 compare_fn_t compare, void *search)
 {
     if (array == NULL || compare == NULL || search == NULL)
         return -1;
-    if (array != NULL && (asize == 0 || asize > SSIZE_MAX || esize == 0))
+    if (array != NULL && (ar_size == 0 || ar_size > SSIZE_MAX || el_size == 0))
         return -1;
 
-    size_t left = 0, right = asize;
+    size_t left = 0, right = ar_size;
 
     while (left < right) {
         size_t mid = left + (right - left) / 2;
-        ssize_t cmp = compare(search, array + (mid * esize));
+        ssize_t cmp = compare(search, (char *) array + (mid * el_size));
 
         if (cmp < 0)
             right = mid;
@@ -101,7 +102,8 @@ ssize_t binary_search_rightmost(void *array, size_t asize, size_t esize,
             left = mid + 1;
     }
 
-    if (left > 0 && compare(search, array + ((right - 1) * esize)) == 0)
+    void *rightmost = (char *) array + ((right - 1) * el_size);
+    if (left > 0 && compare(search, rightmost) == 0)
         return right - 1;
     return -1;
 }
