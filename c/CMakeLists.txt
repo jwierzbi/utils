@@ -65,6 +65,26 @@ set(GTEST_STATIC_LIB ${EXTERNAL_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}gtest${CM
 set(GTEST_MAIN_STATIC_LIB ${EXTERNAL_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}gtest_main${CMAKE_STATIC_LIBRARY_SUFFIX})
 set(CMOCKA_LIB ${EXTERNAL_DIR}/lib/libcmocka.so)
 
+# ----- vector -----------------------------------------------------------------
+
+set(TEST_VECTOR_SOURCES
+    ${CMAKE_SOURCE_DIR}/src/vector.c
+    ${CMAKE_SOURCE_DIR}/test/test_vector.c
+)
+
+add_executable(test_vector ${TEST_VECTOR_SOURCES})
+
+target_include_directories(
+    test_vector PUBLIC ${PROJECT_SOURCE_DIR}/src
+    test_vector PUBLIC ${CMAKE_BINARY_DIR}/external/include
+)
+
+
+target_link_libraries(test_vector PRIVATE
+  asan
+  ${CMOCKA_LIB}
+)
+
 # ----- countdownlatch ---------------------------------------------------------
 
 set(TEST_COUNTDOWNLATCH_SOURCES
